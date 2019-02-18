@@ -1,16 +1,16 @@
+#include "hash_graph.h"
 #include <iostream>
 #include <algorithm>
 #include <queue>
-#include "hash_graph.h"
 using std::queue;
-int BFS_from_vertex(const CHashGraph* graph, int rootVertex ){
-    vector<bool> verticesState(graph->VerticesCount(), false);
+bool BFS_from_vertex(const CHashGraph* graph, vector<bool>& verticesState, int rootVertex ){
     vector<int> parents(graph->VerticesCount(), -1);
-    vector<int> depths(graph->VerticesCount(), 0);
+    vector<bool> marks(graph->VerticesCount(), false);
     queue<int> queue;
     queue.push(rootVertex);
     verticesState[rootVertex]=true;
     while(!queue.empty()){
+
         int cur=queue.front();
         queue.pop();
         vector<int> next;
@@ -22,30 +22,32 @@ int BFS_from_vertex(const CHashGraph* graph, int rootVertex ){
             if(!verticesState[vertex]){
                 parents[vertex]=cur;
                 verticesState[vertex]=true;
-                depths[vertex]=depths[cur]+1;
                 queue.push(vertex);
+                marks[vertex]=!marks[cur];
             }
             else{
-                return depths[cur]+depths[vertex]+1;
+                if(marks[cur]==marks[vertex]){
+                    return true;
+                }
             }
 
         }
     }
 
-    return -1;
+    return false;
 
 }
-
-int findMinLength(const CHashGraph* graph){
+const char* Check(CHashGraph* graph){
     vector<bool> verticesState(graph->VerticesCount(), false);
-    int minLength=-1;
-    for(int i=0;i<graph->VerticesCount();++i){
-        int length = BFS_from_vertex(graph,i);
-        if(length!=-1){
-            minLength = minLength==-1 ? length : std::min(minLength, length);
+    for(int i=0; i<graph->VerticesCount();++i){
+        if(verticesState[i]){
+            continue;
+        }
+        if (BFS_from_vertex(graph, verticesState, i)){
+            return "NO";
         }
     }
-    return minLength;
+    return "YES";
 }
 
 int main(){
@@ -58,9 +60,9 @@ int main(){
         graph.AddEdge(from,to);
         graph.AddEdge(to, from);
     }
-    std::cout<<findMinLength(&graph);
+    std::cout<<Check(&graph);
 
 
 
-return 0;
+    return 0;
 }

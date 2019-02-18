@@ -1,4 +1,3 @@
-
 #include "hash_graph.h"
 
 CHashGraph::CHashGraph(int vertexCount) : adjacencyTable(vertexCount) {
