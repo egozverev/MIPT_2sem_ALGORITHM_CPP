@@ -1,6 +1,6 @@
-
 #include "hash_graph.h"
-
+#include <algorithm>
+using std::copy;
 CHashGraph::CHashGraph(int vertexCount) : adjacencyTable(vertexCount) {
 }
 CHashGraph::CHashGraph(const IGraph *_graph) {
@@ -25,6 +25,7 @@ void CHashGraph::GetNextVertices(int vertex, vector<int>& vertices) const {
     for(int i: adjacencyTable[vertex]){
         vertices.push_back(i);
     }
+    copy(adjacencyTable.begin(), adjacencyTable.end(), vertices.begin());
 }
 
 void CHashGraph::GetPrevVertices(int vertex, vector<int>& vertices) const {

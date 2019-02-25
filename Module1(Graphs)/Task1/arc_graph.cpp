@@ -13,33 +13,29 @@ CArcGraph::CArcGraph(const IGraph *_graph) {
 }
 
 void CArcGraph::AddEdge(int from, int to) {
-    arcList.push_back(vector<int> {from, to});
+    arcList.emplace_back(std::make_pair(from, to));
+
 
 }
 
 int CArcGraph::VerticesCount() const {
-    std::set<int> vertices;
-    for(vector< int >pair : arcList){
-        vertices.insert(pair[0]);
-        vertices.insert(pair[1]);
-    }
-    return vertices.size();
+    return arcList.size();
 }
 
 void CArcGraph::GetNextVertices(int vertex, vector<int>& vertices) const {
     vertices.clear();
-    for(vector< int >pair : arcList){
-        if(pair[0]==vertex){
-            vertices.push_back(pair[1]);
+    for(pair<int, int> pair : arcList){
+        if(pair.first==vertex){
+            vertices.push_back(pair.second);
         }
     }
 }
 
 void CArcGraph::GetPrevVertices(int vertex, vector<int>& vertices) const {
     vertices.clear();
-    for(vector< int >pair : arcList){
-        if(pair[1]==vertex){
-            vertices.push_back(pair[0]);
+    for(pair<int, int> pair : arcList){
+        if(pair.first==vertex){
+            vertices.push_back(pair.second);
         }
     }
 }

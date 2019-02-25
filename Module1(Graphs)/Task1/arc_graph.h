@@ -3,8 +3,9 @@
 #include "graph.h"
 
 #include <vector>
+#include <utility>
 using std::vector;
-
+using std::pair;
 class CArcGraph : public IGraph {
 public:
     CArcGraph(int vertexCount);
@@ -15,5 +16,5 @@ public:
     virtual void GetPrevVertices(int vertex, vector<int>& vertices) const;
 
 private:
-    vector< vector< int > > arcList;
+    vector<pair<int, int>> arcList;
 };

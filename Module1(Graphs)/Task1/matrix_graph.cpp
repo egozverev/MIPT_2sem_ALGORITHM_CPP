@@ -16,11 +16,11 @@ void CMatrixGraph::AddEdge(int from, int to) {
 int CMatrixGraph::VerticesCount() const {
     return adjacencyMatrix.size();
 }
-void CMatrixGraph::GetNextVertices(int vertex, vector<int> &vertices) const {
+void CMatrixGraph::GetNextVertices(int firstVertex, vector<int> &vertices) const {
     vertices.clear();
-    for(int i=0; i<adjacencyMatrix.size(); ++i){
-        if(adjacencyMatrix[vertex][i]){
-            vertices.push_back(i);
+    for(int secondVertex=0; secondVertex<adjacencyMatrix.size(); ++secondVertex){
+        if(adjacencyMatrix[firstVertex][secondVertex]){
+            vertices.push_back(secondVertex);
         }
     }
 }

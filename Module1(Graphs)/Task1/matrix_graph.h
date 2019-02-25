@@ -12,7 +12,7 @@ public:
     CMatrixGraph(const IGraph* _graph);
     virtual void AddEdge(int from, int to);
     virtual int VerticesCount() const;
-    virtual void GetNextVertices(int vertex, vector<int>& vertices) const;
+    virtual void GetNextVertices(int firstVertex, vector<int>& vertices) const;
     virtual void GetPrevVertices(int vertex, vector<int>& vertices) const;
 
 private:
