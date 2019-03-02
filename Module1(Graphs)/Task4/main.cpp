@@ -1,11 +1,13 @@
 #include "hash_graph.h"
+#include <optional>
 #include <iostream>
 #include <algorithm>
 #include <queue>
 using std::queue;
+using std::optional;
 bool BFS_from_vertex(const CHashGraph* graph, vector<bool>& verticesState, int rootVertex ){
-    vector<int> parents(graph->VerticesCount(), -1);
-    vector<bool> marks(graph->VerticesCount(), false);
+    vector<optional<int>> parents(graph->VerticesCount());
+    vector<bool> marks(graph->VerticesCount());
     queue<int> queue;
     queue.push(rootVertex);
     verticesState[rootVertex]=true;
@@ -25,11 +27,9 @@ bool BFS_from_vertex(const CHashGraph* graph, vector<bool>& verticesState, int r
                 queue.push(vertex);
                 marks[vertex]=!marks[cur];
             }
-            else{
-                if(marks[cur]==marks[vertex]){
+            else if(marks[cur]==marks[vertex]){
                     return true;
                 }
-            }
 
         }
     }
@@ -37,17 +37,17 @@ bool BFS_from_vertex(const CHashGraph* graph, vector<bool>& verticesState, int r
     return false;
 
 }
-const char* Check(CHashGraph* graph){
-    vector<bool> verticesState(graph->VerticesCount(), false);
+bool Check(CHashGraph* graph){
+    vector<bool> verticesState(graph->VerticesCount());
     for(int i=0; i<graph->VerticesCount();++i){
         if(verticesState[i]){
             continue;
         }
         if (BFS_from_vertex(graph, verticesState, i)){
-            return "NO";
+            return false;
         }
     }
-    return "YES";
+    return true;
 }
 
 int main(){
@@ -60,7 +60,7 @@ int main(){
         graph.AddEdge(from,to);
         graph.AddEdge(to, from);
     }
-    std::cout<<Check(&graph);
+    std::cout<<(Check(&graph) ? "YES" : "NO ");
 
 
 
