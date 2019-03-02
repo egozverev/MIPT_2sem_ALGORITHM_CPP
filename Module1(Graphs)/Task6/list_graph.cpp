@@ -52,7 +52,7 @@ void CListGraph::DFSFromVertex(int vertex, vector<bool>& wasInUse, vector<int>& 
     }
     leave.push_back(vertex);
 }
-void CListGraph:: DFS(vector<int>& leave) const{
+void CListGraph::DFS(vector<int>& leave) const{
     vector<bool> wasInUse(VerticesCount());
     for(int vertex=0; vertex<VerticesCount();++vertex){
         if(wasInUse[vertex]){
