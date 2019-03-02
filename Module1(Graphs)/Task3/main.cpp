@@ -1,11 +1,11 @@
-#include "hash_graph.h"
+#include "list_graph.h"
 #include <iostream>
 #include <algorithm>
 #include <queue>
 using std::queue;
 int CountWays(const CListGraph* graph, int from, int to ){
-    vector<bool> verticesStates(graph->VerticesCount(), false);
-    vector<int> countWays(graph->VerticesCount(), 0);
+    vector<bool> verticesStates(graph->VerticesCount());
+    vector<int> countWays(graph->VerticesCount());
     vector<int> levels(graph->VerticesCount(), graph->VerticesCount());
 
     queue<int> verticesQueue;
@@ -19,17 +19,17 @@ int CountWays(const CListGraph* graph, int from, int to ){
             continue;
         }
         verticesStates[cur]=true;
-        vector<int> next;
+        vector<short> next;
         graph->GetNextVertices(cur, next);
-        for(int vertex: next){
-            if(levels[vertex]<=levels[cur]){
+        for(int neighbour: next){
+            if(levels[neighbour]<=levels[cur]){
                 continue;
             }
-            countWays[vertex]+=countWays[cur];
-            if(!verticesStates[vertex]){
-                verticesStates[vertex]=true;
-                levels[vertex]=levels[cur]+1;
-                verticesQueue.push(vertex);
+            countWays[neighbour]+=countWays[cur];
+            if(!verticesStates[neighbour]){
+                verticesStates[neighbour]=true;
+                levels[neighbour]=levels[cur]+1;
+                verticesQueue.push(neighbour);
             }
 
         }
