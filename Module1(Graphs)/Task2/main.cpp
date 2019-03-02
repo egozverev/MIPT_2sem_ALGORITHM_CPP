@@ -1,12 +1,15 @@
 #include <iostream>
 #include <algorithm>
 #include <queue>
+#include <optional>
 #include "hash_graph.h"
 using std::queue;
-int BFS_from_vertex(const CHashGraph* graph, int rootVertex ){
-    vector<bool> verticesState(graph->VerticesCount(), false);
-    vector<int> parents(graph->VerticesCount(), -1);
-    vector<int> depths(graph->VerticesCount(), 0);
+using std::optional;
+using std::nullopt;
+optional<int> BFS(const CHashGraph *graph, int rootVertex){
+    vector<bool> verticesState(graph->VerticesCount());
+    vector<optional<int>> parents (graph->VerticesCount());
+    vector<int> depths(graph->VerticesCount());
     queue<int> queue;
     queue.push(rootVertex);
     verticesState[rootVertex]=true;
@@ -15,39 +18,41 @@ int BFS_from_vertex(const CHashGraph* graph, int rootVertex ){
         queue.pop();
         vector<int> next;
         graph->GetNextVertices(cur,next);
-        for(int vertex: next){
-            if(vertex==parents[cur]){
+        for(int neighbour: next){
+            if(neighbour==parents[cur]){
                 continue;
             }
-            if(!verticesState[vertex]){
-                parents[vertex]=cur;
-                verticesState[vertex]=true;
-                depths[vertex]=depths[cur]+1;
-                queue.push(vertex);
+            if(!verticesState[neighbour]){
+                parents[neighbour]=cur;
+                verticesState[neighbour]=true;
+                depths[neighbour]=depths[cur]+1;
+                queue.push(neighbour);
             }
             else{
-                return depths[cur]+depths[vertex]+1;
+                return depths[cur]+depths[neighbour]+1;
             }
 
         }
     }
 
-    return -1;
+    return nullopt;
 
 }
 
-int findMinLength(const CHashGraph* graph){
+int FindMinCycleLength(const CHashGraph *graph){
+    vector<bool> verticesState(graph->VerticesCount(), false);
     int minLength=-1;
     for(int i=0;i<graph->VerticesCount();++i){
-        int length = BFS_from_vertex(graph,i);
+        optional<int> length = BFS(graph, i);
         if(length!=-1){
-            minLength = minLength==-1 ? length : std::min(minLength, length);
+            minLength = minLength==-1 ? *length : std::min(minLength, *length);
         }
     }
     return minLength;
 }
 
 int main(){
+
     int n,m;
     std::cin>>n>>m;
     CHashGraph graph(n);
@@ -57,9 +62,8 @@ int main(){
         graph.AddEdge(from,to);
         graph.AddEdge(to, from);
     }
-    std::cout<<findMinLength(&graph);
+    std::cout<< FindMinCycleLength(&graph);
 
 
 
-return 0;
 }
