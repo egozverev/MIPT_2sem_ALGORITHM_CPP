@@ -14,7 +14,7 @@ public:
     virtual void GetPrevVertices(int vertex, vector<int>& vertices) const;
     void  DFS(vector<int>& leave) const;
     int  MarkComponents(vector<int>& leave, vector<int>& marks) const;
-
+    void GetTransposed(CListGraph& graph);
 private:
     void  DFSFromVertex(int vertex, vector<bool>& wasInUse, vector<int>& leave) const;
     vector<vector<int> > adjacencyList;
