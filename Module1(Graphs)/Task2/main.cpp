@@ -44,7 +44,7 @@ int FindMinCycleLength(const CHashGraph *graph){
     int minLength=-1;
     for(int i=0;i<graph->VerticesCount();++i){
         optional<int> length = BFS(graph, i);
-        if(length!=-1){
+        if(length!=nullopt){
             minLength = minLength==-1 ? *length : std::min(minLength, *length);
         }
     }
