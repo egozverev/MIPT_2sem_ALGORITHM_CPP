@@ -52,7 +52,7 @@ void CListGraph::DFSFromVertex(int vertex, vector<bool>& wasInUse, vector<int>& 
     }
     leave.push_back(vertex);
 }
-void CListGraph::DFS(vector<int>& leave) const{
+void CListGraph:: DFS(vector<int>& leave) const{
     vector<bool> wasInUse(VerticesCount());
     for(int vertex=0; vertex<VerticesCount();++vertex){
         if(wasInUse[vertex]){
@@ -91,4 +91,15 @@ int CListGraph::MarkComponents(vector<int>& leave, vector<int>& marks) const {
         ++mark;
     }
     return mark;
+}
+void CListGraph:: GetTransposed(CListGraph& graph){
+    for(int first=0; first<VerticesCount();++first){
+        vector<int> next;
+        GetNextVertices(first, next);
+        for(int neighbour: next){
+            graph.AddEdge(neighbour, first);
+        }
+    }
+
+
 }
