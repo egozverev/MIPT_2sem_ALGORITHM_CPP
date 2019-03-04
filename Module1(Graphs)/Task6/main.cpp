@@ -48,8 +48,8 @@ int main() {
         --from;
         --to;
         graph.AddEdge(from, to);
-        transGraph.AddEdge(to, from);
     }
+    graph.GetTransposed(transGraph);
     vector<int> leave;
     graph.DFS(leave);
     vector<int> marks(graph.VerticesCount());
