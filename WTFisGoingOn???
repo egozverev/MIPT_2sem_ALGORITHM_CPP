@@ -46,8 +46,8 @@ bool EightGame(Node* rootPosition, string &ans, const unsigned int size) {
     int pos = 0;
     while (true) { // Он когда-то точно остановится, т.к. чётность к-ва беспорядков совпадает
         Node* currentNode = nodeVector[pos];
+        std::cout<<pos<<"\n";
         ++pos;
-        std::cout<<nodeVector.size()<<"\n";
         if (currentNode->position == "123456780") {
             string reversedAns;
             while (currentNode->parent) {
@@ -65,22 +65,22 @@ bool EightGame(Node* rootPosition, string &ans, const unsigned int size) {
         }
 
         int zeroPosition = currentNode->position.find('0');
-        if (zeroPosition % 3 != 2) {
+        if (zeroPosition % 3 != 2 && currentNode->movement != 'L') {
             string newPosition = moveBone(currentNode->position, zeroPosition, 'R');
             Node* nodeToPush = new Node(newPosition, 'R', currentNode);
             nodeVector.push_back(nodeToPush);
         }
-        if (zeroPosition % 3 != 0) {
+        if (zeroPosition % 3 != 0 && currentNode->movement != 'R') {
             string newPosition = moveBone(currentNode->position, zeroPosition, 'L');
             Node* nodeToPush = new Node(newPosition, 'L', currentNode);
             nodeVector.push_back(nodeToPush);
         }
-        if (zeroPosition > 2) {
+        if (zeroPosition > 2 && currentNode->movement != 'D') {
             string newPosition = moveBone(currentNode->position, zeroPosition, 'U');
             Node* nodeToPush = new Node(newPosition, 'U', currentNode);
             nodeVector.push_back(nodeToPush);
         }
-        if (zeroPosition < 6) {
+        if (zeroPosition < 6 && currentNode->movement != 'U') {
             string newPosition = moveBone(currentNode->position, zeroPosition, 'D');
             Node* nodeToPush = new Node(newPosition, 'D', currentNode);
             nodeVector.push_back(nodeToPush);
