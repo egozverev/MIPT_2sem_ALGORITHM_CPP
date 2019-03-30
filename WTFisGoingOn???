@@ -2,19 +2,77 @@
 #include <string>
 #include <queue>
 #include <utility>
-
+#include <unordered_map>
+#include <cmath>
 using std::string;
-using std::vector;
-
-struct Node {
-public:
-    Node(string& str, char move, Node* parent_) : position(str), movement(move), parent(parent_) {
+using std::unordered_map;
+using std::pair;
+using std::priority_queue;
+using std::make_pair;
+using std::cin;
+using std::cout;
+char ConvertIntToChar(int number){
+    if(number<=9){
+        return static_cast<char>(number+48); //convert num to 'num' correctly
+    } else {
+        return static_cast<char>(55+number); //convert 10 to A, 11 to B,... 15 to F
+    } //Типа шестнадцетеричная система кодирования
+}
+int ConvertCharToInt(char sym){
+    if(sym<'9'){
+        return sym-48;
+    } else{
+        return sym-55;
     }
-
-    string position; //should have the size of 9
+}
+class Node {
+public:
+    Node():movement('N'), parent("0"), state("0"){}
+    Node(string pos, char move, string parent_) : movement(move), parent(parent_), state(pos) {
+    }
+    string state;
     char movement;  // U/D/R/L/N
-    Node *parent;
+    string parent;
+    bool CanBeSolved();
+    int distanceFromRoot=0;
+
+
+
+private:
+
+    const unsigned int size=16;
 };
+
+bool Node::CanBeSolved() {
+    int inversionNum = 0;
+    for (int first = 0; first < size; ++first) {
+        for (int second = first + 1; second < size; ++second) {
+            if(state[first]=='0' || state[second]=='0'){
+                continue;
+            }
+            if (state[first] > state[second]) {
+                ++inversionNum;
+            }
+        }
+    }
+    return (inversionNum + state.find('0')/4) % 2;
+
+}
+
+int Heuristics(string& state) {
+    const unsigned char size = 16;
+    int heuristics=0;
+    for(int first=0; first<size; ++first){
+        int idealPos = !first ? size-1: first-1 ;
+        int pos = state.find(ConvertIntToChar(first));
+        heuristics += abs(pos%4 - idealPos%4) + abs(pos/4-idealPos/4);
+    }
+    return heuristics;
+}
+/*
+int Node::PredictDistance() {
+    return distanceFromRoot + Heuristics();
+}*/
 
 string moveBone(string str, int position, char where) {
     if (where == 'L') {
@@ -22,92 +80,92 @@ string moveBone(string str, int position, char where) {
     } else if (where == 'R') {
         std::swap(str[position], str[position + 1]);
     } else if (where == 'D') {
-        std::swap(str[position], str[position + 3]);
+        std::swap(str[position], str[position + 4]);
     } else {
-        std::swap(str[position], str[position - 3]);
+        std::swap(str[position], str[position - 4]);
     }
     return str;
 }
-
-bool EightGame(Node* rootPosition, string &ans, const unsigned int size) {
-    int inversionNum = 0;
-    for (int first = 0; first < size; ++first) {
-        for (int second = first + 1; second < size; ++second) {
-            if (rootPosition->position[first] > rootPosition->position[second]) {
-                ++inversionNum;
-            }
-        }
+class Compare {
+public:
+    bool operator()(pair<int, int> first, pair<int, int> second) {
+        return first > second;
     }
-    if (inversionNum % 2) {
+};
+bool FifteenGame(string firstPosition, string& answer, const unsigned int size){
+    Node firstNode(firstPosition, 'N', "0");
+    if(not firstNode.CanBeSolved()){
         return false;
     }
-    vector<Node*> nodeVector; // умные указатели не забудь добавить, это тебе считается костылём :)
-    nodeVector.push_back(rootPosition);
-    int pos = 0;
-    while (true) { // Он когда-то точно остановится, т.к. чётность к-ва беспорядков совпадает
-        Node* currentNode = nodeVector[pos];
-        std::cout<<pos<<"\n";
-        ++pos;
-        if (currentNode->position == "123456780") {
-            string reversedAns;
-            while (currentNode->parent) {
-                reversedAns.push_back(currentNode->movement);
-                currentNode = currentNode->parent;
+    unordered_map<string, int> distances;
+    unordered_map<string, Node> nodeMap; // Храним использованные вершины ( инфу о них )
+    priority_queue<pair<int, string>, std::vector<pair<int, string>>, Compare> heap; // pair<distance, string>
+    heap.push(make_pair(Heuristics(firstPosition), firstPosition));
+    distances[firstPosition]=Heuristics(firstPosition);
+    while(!heap.empty()){
+        pair<int, string> current = heap.top();
+        heap.pop();
+        string currentState = current.second;
+        int zeroPosition = currentState.find('0');
+        if (zeroPosition % 4 != 3) {
+            string newPosition = moveBone(currentState, zeroPosition, 'R');
+            if(!distances.count(newPosition) or
+                    distances[newPosition] > nodeMap[currentState].distanceFromRoot +1 + Heuristics(newPosition)) {
+                nodeMap[newPosition]= Node(newPosition, 'R', currentState));
+                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
+                nodeMap[newPosition].distanceFromRoot = newDistance;
+                newDistance += Heuristics(newPosition);
+                heap.push(make_pair(newDistance, newPosition));
             }
-            while (!reversedAns.empty()) {
-                ans.push_back(reversedAns.back());
-                reversedAns.pop_back();
+        }
+        /*
+        if (zeroPosition % 3 != 0 ){
+            string newPosition = moveBone(currentPosition, zeroPosition, 'L');
+            if(! nodeMap.count(newPosition)){
+                nodeMap.emplace(newPosition, Node('L', currentPosition));
+                nodeQueue.push(newPosition);
             }
-            for(Node* ptr: nodeVector){
-                delete ptr;
+        }
+        if (zeroPosition > 2) {
+            string newPosition = moveBone(currentPosition, zeroPosition, 'U');
+            if(! nodeMap.count(newPosition)){
+                nodeMap.emplace(newPosition, Node('U', currentPosition));
+                nodeQueue.push(newPosition);
             }
-            return true;
+        }
+        if (zeroPosition < 6) {
+            string newPosition = moveBone(currentPosition, zeroPosition, 'D');
+            if(! nodeMap.count(newPosition)){
+                nodeMap.emplace(newPosition, Node('D', currentPosition));
+                nodeQueue.push(newPosition);
+            }
         }
 
-        int zeroPosition = currentNode->position.find('0');
-        if (zeroPosition % 3 != 2 && currentNode->movement != 'L') {
-            string newPosition = moveBone(currentNode->position, zeroPosition, 'R');
-            Node* nodeToPush = new Node(newPosition, 'R', currentNode);
-            nodeVector.push_back(nodeToPush);
-        }
-        if (zeroPosition % 3 != 0 && currentNode->movement != 'R') {
-            string newPosition = moveBone(currentNode->position, zeroPosition, 'L');
-            Node* nodeToPush = new Node(newPosition, 'L', currentNode);
-            nodeVector.push_back(nodeToPush);
-        }
-        if (zeroPosition > 2 && currentNode->movement != 'D') {
-            string newPosition = moveBone(currentNode->position, zeroPosition, 'U');
-            Node* nodeToPush = new Node(newPosition, 'U', currentNode);
-            nodeVector.push_back(nodeToPush);
-        }
-        if (zeroPosition < 6 && currentNode->movement != 'U') {
-            string newPosition = moveBone(currentNode->position, zeroPosition, 'D');
-            Node* nodeToPush = new Node(newPosition, 'D', currentNode);
-            nodeVector.push_back(nodeToPush);
-        }
-
-
+        */
     }
+
 
 }
 
 
 int main() {
-    const unsigned int size = 9;
+    const unsigned int size = 16;
     string firstPosition;
     for (int i = 0; i < size; ++i) {
-        char next;
-        std::cin >> next;
-        firstPosition.push_back(next);
+        int next;
+        cin >> next;
+        firstPosition.push_back(ConvertIntToChar(next));
     }
-    Node* rootNode = new Node(firstPosition, 'N', nullptr);
+    /*
     string answer;
-    if (EightGame(rootNode, answer, size)) {
-        std::cout << answer.size() << "\n";
-        std::cout << answer;
+    if (FifteenGame(firstPosition, answer, size)) {
+        cout << answer.size() << "\n";
+        cout << answer;
     } else {
-        std::cout << -1;
+        cout << -1;
     }
-
+    */
+    Node node(firstPosition, 'N', "0");
+    cout<<node.PredictedDistance();
 
 }
