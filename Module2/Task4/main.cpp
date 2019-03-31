@@ -4,7 +4,6 @@
 #include <utility>
 #include <unordered_map>
 #include <cmath>
-
 using std::string;
 using std::unordered_map;
 using std::pair;
@@ -43,6 +42,7 @@ public:
 
     bool CanBeSolved();
 
+    int distanceFromRoot = 0;
 
 
 private:
@@ -81,11 +81,11 @@ int Heuristics(string &state) {
         if (idealPosFirst / 4 == posFirst / 4) {
             for (int posSecond = (posFirst / 4) * 4; posSecond < posFirst; ++posSecond) {
                 int idealPosSecond = !ConvertCharToInt(state[posSecond]) ?
-                        size - 1 : ConvertCharToInt(state[posSecond]) - 1;
+                                     size - 1 : ConvertCharToInt(state[posSecond]) - 1;
                 if (idealPosSecond / 4 == posSecond / 4 &&(
                         !ConvertCharToInt(state[posSecond]) || (
-                        ConvertCharToInt(state[posFirst]) &&
-                        state[posSecond] > state[posFirst])) ){
+                                ConvertCharToInt(state[posFirst]) &&
+                                state[posSecond] > state[posFirst])) ){
                     heuristics += 2;
                 }
             }
@@ -93,7 +93,7 @@ int Heuristics(string &state) {
         if (idealPosFirst % 4 == posFirst % 4) {
             for (int posSecond = posFirst % 4; posSecond < posFirst; posSecond += 4) {
                 int idealPosSecond = !ConvertCharToInt(state[posSecond]) ?
-                        size - 1 : ConvertCharToInt(state[posSecond]) - 1;
+                                     size - 1 : ConvertCharToInt(state[posSecond]) - 1;
                 if (idealPosSecond %4 == posSecond % 4 &&(
                         !ConvertCharToInt(state[posSecond]) || (
                                 ConvertCharToInt(state[posFirst]) &&
@@ -105,8 +105,9 @@ int Heuristics(string &state) {
     }
 
 
-    return heuristics;
+    return heuristics*117/80;
 }
+
 
 string moveBone(string str, int position, char where) {
     if (where == 'L') {
@@ -148,7 +149,6 @@ bool FifteenGame(string firstPosition, string &answer, const unsigned int size) 
         pair<int, string> current = heap.top();
         heap.pop();
         string currentState = current.second;
-
         if (currentState == "123456789ABCDEF0") {
             string reversedAns;
             while (currentState != firstPosition) {
@@ -170,38 +170,56 @@ bool FifteenGame(string firstPosition, string &answer, const unsigned int size) 
         if (zeroPosition % 4 != 3) {
             string newPosition = moveBone(currentState, zeroPosition, 'R');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] > Heuristics(newPosition))) {
+                                          distances[newPosition] >
+                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'L', currentState);
-                heap.push(make_pair(Heuristics(newPosition), newPosition));
+                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
+                nodeMap[newPosition].distanceFromRoot = newDistance;
+                newDistance += Heuristics(newPosition);
+                heap.push(make_pair(newDistance, newPosition));
             }
         }
         if (zeroPosition % 4 != 0) {
             string newPosition = moveBone(currentState, zeroPosition, 'L');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] > Heuristics(newPosition))) {
+                                          distances[newPosition] >
+                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'R', currentState);
-                heap.push(make_pair(Heuristics(newPosition), newPosition));
+                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
+                nodeMap[newPosition].distanceFromRoot = newDistance;
+                newDistance += Heuristics(newPosition);
+                heap.push(make_pair(newDistance, newPosition));
             }
         }
         if (zeroPosition > 3) {
             string newPosition = moveBone(currentState, zeroPosition, 'U');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] > Heuristics(newPosition))) {
+                                          distances[newPosition] >
+                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'D', currentState);
-                heap.push(make_pair(Heuristics(newPosition), newPosition));
+                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
+                nodeMap[newPosition].distanceFromRoot = newDistance;
+                newDistance += Heuristics(newPosition);
+                heap.push(make_pair(newDistance, newPosition));
             }
         }
         if (zeroPosition < 12) {
             string newPosition = moveBone(currentState, zeroPosition, 'D');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] > Heuristics(newPosition))) {
+                                          distances[newPosition] >
+                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'U', currentState);
-                heap.push(make_pair(Heuristics(newPosition), newPosition));
+                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
+                nodeMap[newPosition].distanceFromRoot = newDistance;
+                newDistance += Heuristics(newPosition);
+                heap.push(make_pair(newDistance, newPosition));
             }
         }
 
     }
 }
+
+
 
 
 int main() {
@@ -214,12 +232,12 @@ int main() {
     }
 
     string answer;
-
     if (FifteenGame(firstPosition, answer, size)) {
         cout << answer.size() << "\n";
         cout << answer;
     } else {
         cout << -1;
     }
+
 
 }
