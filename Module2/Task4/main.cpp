@@ -43,7 +43,6 @@ public:
 
     bool CanBeSolved();
 
-    int distanceFromRoot = 0;
 
 
 private:
@@ -109,11 +108,6 @@ int Heuristics(string &state) {
     return heuristics;
 }
 
-/*
-int Node::PredictDistance() {
-    return distanceFromRoot + Heuristics();
-}*/
-
 string moveBone(string str, int position, char where) {
     if (where == 'L') {
         std::swap(str[position], str[position - 1]);
@@ -154,13 +148,9 @@ bool FifteenGame(string firstPosition, string &answer, const unsigned int size) 
         pair<int, string> current = heap.top();
         heap.pop();
         string currentState = current.second;
-        //if(distances[currentState] != nodeMap[currentState].distanceFromRoot +Heuristics(currentState) ){
-        //    continue;
-        //}
+
         if (currentState == "123456789ABCDEF0") {
-            //std::cout<<"HERE\nCS: "<<currentState<<"\nFP: "<<firstPosition<<" \n";
             string reversedAns;
-            //Node currentNode = nodeMap[currentState];
             while (currentState != firstPosition) {
                 reversedAns.push_back(nodeMap[currentState].movement);
                 currentState = nodeMap[currentState].parent;
@@ -180,49 +170,33 @@ bool FifteenGame(string firstPosition, string &answer, const unsigned int size) 
         if (zeroPosition % 4 != 3) {
             string newPosition = moveBone(currentState, zeroPosition, 'R');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] >
-                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
+                                          distances[newPosition] > Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'L', currentState);
-                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
-                nodeMap[newPosition].distanceFromRoot = newDistance;
-                newDistance += Heuristics(newPosition);
-                heap.push(make_pair(newDistance, newPosition));
+                heap.push(make_pair(Heuristics(newPosition), newPosition));
             }
         }
         if (zeroPosition % 4 != 0) {
             string newPosition = moveBone(currentState, zeroPosition, 'L');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] >
-                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
+                                          distances[newPosition] > Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'R', currentState);
-                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
-                nodeMap[newPosition].distanceFromRoot = newDistance;
-                newDistance += Heuristics(newPosition);
-                heap.push(make_pair(newDistance, newPosition));
+                heap.push(make_pair(Heuristics(newPosition), newPosition));
             }
         }
         if (zeroPosition > 3) {
             string newPosition = moveBone(currentState, zeroPosition, 'U');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] >
-                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
+                                          distances[newPosition] > Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'D', currentState);
-                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
-                nodeMap[newPosition].distanceFromRoot = newDistance;
-                newDistance += Heuristics(newPosition);
-                heap.push(make_pair(newDistance, newPosition));
+                heap.push(make_pair(Heuristics(newPosition), newPosition));
             }
         }
         if (zeroPosition < 12) {
             string newPosition = moveBone(currentState, zeroPosition, 'D');
             if (!wasUsed[newPosition] && (!distances.count(newPosition) ||
-                                          distances[newPosition] >
-                                          nodeMap[currentState].distanceFromRoot + 1 + Heuristics(newPosition))) {
+                                          distances[newPosition] > Heuristics(newPosition))) {
                 nodeMap[newPosition] = Node(newPosition, 'U', currentState);
-                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
-                nodeMap[newPosition].distanceFromRoot = newDistance;
-                newDistance += Heuristics(newPosition);
-                heap.push(make_pair(newDistance, newPosition));
+                heap.push(make_pair(Heuristics(newPosition), newPosition));
             }
         }
 
