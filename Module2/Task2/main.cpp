@@ -2,7 +2,7 @@
 #include "list_graph.h"
 #include <limits>
 #include <algorithm>
-void ArbitrageGraphFill(CListGraph &graph) {
+void FillArbitrageGraph(CListGraph &graph) {
     for (int first = 0; first < graph.VerticesCount(); ++first) {
         for (int second = 0; second < graph.VerticesCount(); ++second) {
             if (first == second) {
@@ -18,17 +18,15 @@ void ArbitrageGraphFill(CListGraph &graph) {
     }
 }
 
-bool ArbitrageTradePossibility(CListGraph& graph) {
+bool IsArbitrageTradePossible(const CListGraph &graph) {
     for (int vertex = 0; vertex < graph.VerticesCount(); ++vertex) {
         vector<double> distances(graph.VerticesCount(), std::numeric_limits<double>::min());
         distances[vertex] = 1;
-        for (int i = 0; i < graph.VerticesCount() - 1; ++i) {
-            for (int son = 0; son < graph.VerticesCount(); ++son) {
-                vector<std::pair<int, double>> prev;
-                graph.GetIncomingEdges(son, prev);
-                for (std::pair<int, double> parent: prev) {
-                    distances[son] = std::max(distances[son], distances[parent.first] * parent.second);
-                }
+        for (int son = 0; son < graph.VerticesCount(); ++son) {
+            vector<std::pair<int, double>> prev;
+            graph.GetIncomingEdges(son, prev);
+            for (std::pair<int, double> parent: prev) {
+                distances[son] = std::max(distances[son], distances[parent.first] * parent.second);
             }
         }
 
@@ -50,7 +48,7 @@ int main() {
     int n;
     std::cin >> n;
     CListGraph graph(n);
-    ArbitrageGraphFill(graph);
-    std::cout<<(ArbitrageTradePossibility(graph)? "YES" : "NO");
+    FillArbitrageGraph(graph);
+    std::cout<<(IsArbitrageTradePossible(graph)? "YES" : "NO");
 
 }
