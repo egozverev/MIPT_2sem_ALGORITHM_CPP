@@ -3,18 +3,16 @@
 #include <queue>
 #include <algorithm>
 #include <limits.h>
+#include <functional>
 using std::priority_queue;
 using std::make_pair;
-class Compare {
-public:
-    bool operator()(pair<int, int> first, pair<int, int> second) {
-        return first > second;
-    }
-};
+
 
 int Dijkstra(CListGraph &graph, int from, int to){
     vector<int> distances(graph.VerticesCount(), INT_MAX);
-    priority_queue<pair<int, int>, std::vector<pair<int, int>>, Compare> heap; // pair<distance, node>
+    priority_queue<pair<int, int>, std::vector<pair<int, int>>, std::greater<> > heap; // pair<distance, node>
+    //std::greater используется с пустым шаблоном - он умный и сам поймёт, что нужно подставить.
+    //Если вручную ставить, будет clang-tidy.
     distances[from]=0;
     heap.push(make_pair(0, from));
     while(!heap.empty()){
@@ -50,4 +48,5 @@ int main() {
     int from, to;
     std::cin>>from>>to;
     std::cout<< Dijkstra(graph, from, to);
+
 }
