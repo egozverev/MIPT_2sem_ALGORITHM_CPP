@@ -6,58 +6,74 @@
 using std::string;
 using std::queue;
 using std::unordered_map;
-
-struct Node {
-public:
-    Node():movement('N'), parent("0"){}
-    Node(char move, string parent_) : movement(move), parent(parent_) {
-    }
-
-    char movement;  // U/D/R/L/N
-    string parent;
+using std::vector;
+enum Colors {
+    Left = 'L',
+    Right = 'R',
+    Down = 'D',
+    Up = 'U',
+    None = 'N'
 };
-
-string moveBone(string str, int position, char where) {
-    if (where == 'L') {
-        std::swap(str[position], str[position - 1]);
-    } else if (where == 'R') {
-        std::swap(str[position], str[position + 1]);
-    } else if (where == 'D') {
-        std::swap(str[position], str[position + 3]);
-    } else {
-        std::swap(str[position], str[position - 3]);
+class Node {
+public:
+    Node():movement(None), parent(nullptr), position("0"){}
+    Node(Colors move,Node* parent_,string&& pos) : movement(move), parent(parent_), position(pos) {
     }
-    return str;
+    string position;
+    Colors movement; // U/D/R/L/N
+    Node* parent;
+    Node CalculateMovedNode(Colors where);
+    int FindZeroPosition();
+};
+int Node::FindZeroPosition(){
+    return position.find('0');
 }
-
-bool EightGame(string basicPosition, string &ans, const unsigned int size) {
+Node Node::CalculateMovedNode(Colors where){
+    string newPosition = position;
+    int pos = FindZeroPosition();
+    if (where == Left) {
+        std::swap(newPosition[pos], newPosition[pos - 1]);
+    } else if (where == Right) {
+        std::swap(newPosition[pos], newPosition[pos + 1]);
+    } else if (where == Down) {
+        std::swap(newPosition[pos], newPosition[pos + 3]);
+    } else if (where == Up){
+        std::swap(newPosition[pos], newPosition[pos - 3]);
+    }
+    return Node(where, this, std::move(newPosition));
+}
+bool FindPermutationParity(const string& str){ //чётность перестаноки
     int inversionNum = 0;
-    for (int first = 0; first < size; ++first) {
-        for (int second = first + 1; second < size; ++second) {
-            if(basicPosition[first]=='0' || basicPosition[second]=='0'){
+    for (size_t first = 0; first < str.size(); ++first) {
+        for (size_t second = first + 1; second < str.size(); ++second) {
+            if(str[first]=='0' || str[second]=='0'){
                 continue;
             }
-            if (basicPosition[first] > basicPosition[second]) {
+            if (str[first] > str[second]) {
                 ++inversionNum;
             }
         }
     }
-    if (inversionNum % 2) {
+    return static_cast<bool>(inversionNum % 2);
+}
+bool SolveEightGame(string &basicPosition, string &ans) {
+    //не использую const string&, т.к. поменяется при std::move
+    if( FindPermutationParity(basicPosition)){
         return false;
     }
     unordered_map<string, Node> nodeMap;
-    nodeMap.emplace(basicPosition, Node('N', "0"));
-    queue<string> nodeQueue;
-    nodeQueue.push(basicPosition);
+    queue<Node> nodeQueue;        //Node&!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    nodeMap.emplace(basicPosition, Node(None, nullptr, std::move(basicPosition)));
+    nodeQueue.push(nodeMap[basicPosition]);
     while (!nodeQueue.empty()) { // Он когда-то точно остановится, т.к. чётность к-ва беспорядков совпадает
-        string currentPosition = nodeQueue.front();
+        Node currentNode = std::move(nodeQueue.front());
+        string curPos = currentNode.position;
         nodeQueue.pop();
-        if (currentPosition == "123456780") {
+        if (currentNode.position == "123456780") {
             string reversedAns;
-            Node currentNode = nodeMap[currentPosition];
-            while (currentNode.parent!= "0") {
+            while (currentNode.parent) {
                 reversedAns.push_back(currentNode.movement);
-                currentNode = nodeMap[currentNode.parent];
+                currentNode = nodeMap[currentNode.parent->position];
             }
             while (!reversedAns.empty()) {
                 ans.push_back(reversedAns.back());
@@ -65,38 +81,28 @@ bool EightGame(string basicPosition, string &ans, const unsigned int size) {
             }
             return true;
         }
-        Node currentNode = nodeMap[currentPosition];
-        int zeroPosition = currentPosition.find('0');
-        if (zeroPosition % 3 != 2) {
-            string newPosition = moveBone(currentPosition, zeroPosition, 'R');
-            if(! nodeMap.count(newPosition)){
-                nodeMap.emplace(newPosition, Node('R', currentPosition));
-                nodeQueue.push(newPosition);
+        int zeroPosition = currentNode.FindZeroPosition();
+        vector<Colors> possibleMoves;
+        if (zeroPosition % 3 != 2){
+            possibleMoves.push_back(Right);
+        }
+        if (zeroPosition % 3 != 0){
+            possibleMoves.push_back(Left);
+        }
+        if (zeroPosition > 2){
+            possibleMoves.push_back(Up);
+        }
+        if (zeroPosition < 6){
+            possibleMoves.push_back(Down);
+        }
+        for(Colors color: possibleMoves){
+            Node newNode = nodeMap[curPos].CalculateMovedNode(color);
+            string newPosition = newNode.position;
+            if(nodeMap.find(newPosition) == nodeMap.end()){
+                nodeQueue.push(newNode);
+                nodeMap.emplace(newPosition, newNode);
             }
         }
-        if (zeroPosition % 3 != 0 ){
-            string newPosition = moveBone(currentPosition, zeroPosition, 'L');
-            if(! nodeMap.count(newPosition)){
-                nodeMap.emplace(newPosition, Node('L', currentPosition));
-                nodeQueue.push(newPosition);
-            }
-        }
-        if (zeroPosition > 2) {
-            string newPosition = moveBone(currentPosition, zeroPosition, 'U');
-            if(! nodeMap.count(newPosition)){
-                nodeMap.emplace(newPosition, Node('U', currentPosition));
-                nodeQueue.push(newPosition);
-            }
-        }
-        if (zeroPosition < 6) {
-            string newPosition = moveBone(currentPosition, zeroPosition, 'D');
-            if(! nodeMap.count(newPosition)){
-                nodeMap.emplace(newPosition, Node('D', currentPosition));
-                nodeQueue.push(newPosition);
-            }
-        }
-
-
     }
 }
 
@@ -110,8 +116,8 @@ int main() {
         firstPosition.push_back(next);
     }
     string answer;
-    if (EightGame(firstPosition, answer, size)) {
-        std::cout << answer.size() << "\n";
+    if (SolveEightGame(firstPosition, answer)) {
+        std::cout << answer.size() << std::endl;
         std::cout << answer;
     } else {
         std::cout << -1;
