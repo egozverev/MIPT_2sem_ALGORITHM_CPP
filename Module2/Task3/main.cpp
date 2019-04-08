@@ -7,7 +7,7 @@ using std::string;
 using std::queue;
 using std::unordered_map;
 using std::vector;
-enum Colors {
+enum Directions {
     Left = 'L',
     Right = 'R',
     Down = 'D',
@@ -17,18 +17,18 @@ enum Colors {
 class Node {
 public:
     Node():movement(None), parent(nullptr), position("0"){}
-    Node(Colors move,Node* parent_,string&& pos) : movement(move), parent(parent_), position(pos) {
+    Node(Directions move,Node* parent_,string&& pos) : movement(move), parent(parent_), position(pos) {
     }
     string position;
-    Colors movement; // U/D/R/L/N
+    Directions movement; // U/D/R/L/N
     Node* parent;
-    Node CalculateMovedNode(Colors where);
+    Node CalculateMovedNode(Directions where);
     int FindZeroPosition();
 };
 int Node::FindZeroPosition(){
     return position.find('0');
 }
-Node Node::CalculateMovedNode(Colors where){
+Node Node::CalculateMovedNode(Directions where){
     string newPosition = position;
     int pos = FindZeroPosition();
     if (where == Left) {
@@ -54,26 +54,29 @@ bool FindPermutationParity(const string& str){ //чётность переста
             }
         }
     }
-    return static_cast<bool>(inversionNum % 2);
+
+    return inversionNum % 2 != 0;
 }
 bool SolveEightGame(string &basicPosition, string &ans) {
     //не использую const string&, т.к. поменяется при std::move
+    const string finalPosition = "123456780";
     if( FindPermutationParity(basicPosition)){
         return false;
     }
     unordered_map<string, Node> nodeMap;
-    queue<Node> nodeQueue;        //Node&!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    queue<Node*> nodeQueue;
     nodeMap.emplace(basicPosition, Node(None, nullptr, std::move(basicPosition)));
-    nodeQueue.push(nodeMap[basicPosition]);
+    nodeQueue.push(&nodeMap[basicPosition]);
     while (!nodeQueue.empty()) { // Он когда-то точно остановится, т.к. чётность к-ва беспорядков совпадает
-        Node currentNode = std::move(nodeQueue.front());
-        string curPos = currentNode.position;
+        Node* currentNode = nodeQueue.front();
+        string curPos = currentNode->position;
         nodeQueue.pop();
-        if (currentNode.position == "123456780") {
+        if (currentNode->position == finalPosition) {
             string reversedAns;
-            while (currentNode.parent) {
-                reversedAns.push_back(currentNode.movement);
-                currentNode = nodeMap[currentNode.parent->position];
+            while (currentNode->parent) {
+                reversedAns.push_back(currentNode->movement);
+                string parentPos =currentNode->parent->position;
+                currentNode = &nodeMap[parentPos];
             }
             while (!reversedAns.empty()) {
                 ans.push_back(reversedAns.back());
@@ -81,8 +84,8 @@ bool SolveEightGame(string &basicPosition, string &ans) {
             }
             return true;
         }
-        int zeroPosition = currentNode.FindZeroPosition();
-        vector<Colors> possibleMoves;
+        int zeroPosition = currentNode->FindZeroPosition();
+        vector<Directions> possibleMoves;
         if (zeroPosition % 3 != 2){
             possibleMoves.push_back(Right);
         }
@@ -95,12 +98,13 @@ bool SolveEightGame(string &basicPosition, string &ans) {
         if (zeroPosition < 6){
             possibleMoves.push_back(Down);
         }
-        for(Colors color: possibleMoves){
+        for(Directions color: possibleMoves){
             Node newNode = nodeMap[curPos].CalculateMovedNode(color);
             string newPosition = newNode.position;
             if(nodeMap.find(newPosition) == nodeMap.end()){
-                nodeQueue.push(newNode);
                 nodeMap.emplace(newPosition, newNode);
+                nodeQueue.push(&nodeMap[newPosition]);
+
             }
         }
     }
