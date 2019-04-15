@@ -19,11 +19,15 @@ public:
     Node():movement(None), parent(nullptr), position("0"){}
     Node(Directions move,Node* parent_,string&& pos) : movement(move), parent(parent_), position(pos) {
     }
+    Node CalculateMovedNode(Directions where);
+    int FindZeroPosition();
+    string GetPosition() {return position;}
+    Directions GetMovement(){ return movement;}
+    Node* GetParent() {return parent;};
+private:
     string position;
     Directions movement; // U/D/R/L/N
     Node* parent;
-    Node CalculateMovedNode(Directions where);
-    int FindZeroPosition();
 };
 int Node::FindZeroPosition(){
     return position.find('0');
@@ -69,13 +73,13 @@ bool SolveEightGame(string &basicPosition, string &ans) {
     nodeQueue.push(&nodeMap[basicPosition]);
     while (!nodeQueue.empty()) { // Он когда-то точно остановится, т.к. чётность к-ва беспорядков совпадает
         Node* currentNode = nodeQueue.front();
-        string curPos = currentNode->position;
+        string curPos = currentNode->GetPosition();
         nodeQueue.pop();
-        if (currentNode->position == finalPosition) {
+        if (currentNode->GetPosition() == finalPosition) {
             string reversedAns;
-            while (currentNode->parent) {
-                reversedAns.push_back(currentNode->movement);
-                string parentPos =currentNode->parent->position;
+            while (currentNode->GetParent()) {
+                reversedAns.push_back(currentNode->GetMovement());
+                string parentPos =currentNode->GetParent()->GetPosition();
                 currentNode = &nodeMap[parentPos];
             }
             while (!reversedAns.empty()) {
@@ -100,7 +104,7 @@ bool SolveEightGame(string &basicPosition, string &ans) {
         }
         for(Directions color: possibleMoves){
             Node newNode = nodeMap[curPos].CalculateMovedNode(color);
-            string newPosition = newNode.position;
+            string newPosition = newNode.GetPosition();
             if(nodeMap.find(newPosition) == nodeMap.end()){
                 nodeMap.emplace(newPosition, newNode);
                 nodeQueue.push(&nodeMap[newPosition]);
