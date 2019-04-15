@@ -52,15 +52,22 @@ public:
     Node(Directions move, Node* parent_, vector<int> pos ): movement(move), parent(parent_){
         position = EncodeVectorToBitset(pos);
     }
+    bool CanBeSolved();
+    Node CalculateMovedNode(Directions where);
+    int FindZeroPosition();
+    int CalcHeuristics();
+    bitset<64> GetPosition() {return position;}
+    Directions GetMovement() {return movement;}
+    Node* GetParent() {return parent;}
+    int GetDistance() {return distanceFromRoot;}
+    void SetDistance(int newDistance) {distanceFromRoot= newDistance;}
+private:
     bitset<64> position;
     Directions movement; // U/D/R/L/N
     Node* parent;
     int distanceFromRoot = 0;
 
-    bool CanBeSolved();
-    Node CalculateMovedNode(Directions where);
-    int FindZeroPosition();
-    int Heuristics();
+
 };
 int Node::FindZeroPosition(){
     vector<int> vec =DecodeVectorFromBitset(position);
@@ -89,7 +96,7 @@ bool Node::CanBeSolved() {
 
 }
 
-int Node::Heuristics() {
+int Node::CalcHeuristics() {
     const unsigned char size = 16;
     int heuristics = 0;
     vector<int> vecPos = DecodeVectorFromBitset(position);
@@ -104,23 +111,18 @@ int Node::Heuristics() {
         int posFirst = find(vecPos.begin(), vecPos.end(), first)-vecPos.begin();
         if (idealPosFirst / 4 == posFirst / 4) {
             for (int posSecond = (posFirst / 4) * 4; posSecond < posFirst; ++posSecond) {
-                int idealPosSecond = !vecPos[posSecond] ?
-                                     size - 1 : vecPos[posSecond] - 1;
+                int idealPosSecond = !vecPos[posSecond] ? size - 1 : vecPos[posSecond] - 1;
                 if (idealPosSecond / 4 == posSecond / 4 &&(
-                        !vecPos[posSecond] || (vecPos[posFirst] &&
-                                vecPos[posSecond] > vecPos[posFirst])) ){
+                    !vecPos[posSecond] || (vecPos[posFirst] && vecPos[posSecond] > vecPos[posFirst])) ){
                     heuristics += 2;
                 }
             }
         }
         if (idealPosFirst % 4 == posFirst % 4) {
             for (int posSecond = posFirst % 4; posSecond < posFirst; posSecond += 4) {
-                int idealPosSecond = !vecPos[posSecond] ?
-                                     size - 1 : vecPos[posSecond] - 1;
+                int idealPosSecond = !vecPos[posSecond] ? size - 1 : vecPos[posSecond] - 1;
                 if (idealPosSecond %4 == posSecond % 4 &&(
-                        !vecPos[posSecond] || (
-                                vecPos[posFirst] &&
-                                        vecPos[posSecond] > vecPos[posFirst])) ){
+                        !vecPos[posSecond] || (vecPos[posFirst] && vecPos[posSecond] > vecPos[posFirst])) ){
                     heuristics += 2;
                 }
             }
@@ -129,6 +131,9 @@ int Node::Heuristics() {
 
 
     return heuristics*117/80;
+    // Данная магическая констатна 117/80 была подобрана методом упорных магических экспериментов.
+    // Она находится на той грани, когда ещё чуть-чуть, и уже TL, но при этом позволяет достаточно
+    // близко подойти к идеальном ответу.
 }
 Node Node::CalculateMovedNode(Directions where){
     vector<int> newPosition = DecodeVectorFromBitset(position);
@@ -146,13 +151,16 @@ Node Node::CalculateMovedNode(Directions where){
 }
 
 
-class Compare {
-public:
-    bool operator()(pair<int, bitset<64>> first, pair<int, bitset<64>> second) {
-        return first.first > second.first;
-    }
-};
 
+struct NumberAndBitset{
+    int number;
+    bitset<64> bits;
+    NumberAndBitset(int num, bitset<64> bits_): bits(bits_), number(num){}
+
+};
+bool operator <(const NumberAndBitset& first, const NumberAndBitset& second){
+    return first.number > second.number;
+}
 bool FifteenGame(vector<int> firstVecPosition, string &answer) {
     bitset<64> firstPosition = EncodeVectorToBitset(firstVecPosition);
     vector<int> goalPositionVector {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0};
@@ -164,22 +172,22 @@ bool FifteenGame(vector<int> firstVecPosition, string &answer) {
     unordered_map<bitset<64>, int> distances;
     unordered_map<bitset<64>, Node> nodeMap; // Храним использованные вершины ( инфу о них )
     unordered_map<bitset<64>, bool> wasUsed;
-    priority_queue<pair<int, bitset<64>>, std::vector<pair<int, bitset<64>>>, Compare> heap; // pair<distance, string>
+    priority_queue<NumberAndBitset, std::vector<NumberAndBitset>> heap;
 
-    heap.push(make_pair(firstNode.Heuristics(), firstPosition));
+    heap.push(NumberAndBitset(firstNode.CalcHeuristics(), firstPosition));
 
-    distances[firstPosition] = firstNode.Heuristics();
+    distances[firstPosition] = firstNode.CalcHeuristics();
     nodeMap.emplace(firstPosition, firstNode);
     while (!heap.empty()) {
-        pair<int, bitset<64>> current = heap.top();
+        NumberAndBitset current = heap.top();
         heap.pop();
-        bitset<64> currentState = current.second;
+        bitset<64> currentState = current.bits;
         Node* currentNode = &nodeMap[currentState];
         if (currentState == goalPositionSet) {
             string reversedAns;
-            while (currentNode->position != firstPosition) {
-                reversedAns.push_back(currentNode->movement);
-                currentNode = currentNode->parent;
+            while (currentNode->GetPosition() != firstPosition) {
+                reversedAns.push_back(currentNode->GetMovement());
+                currentNode = currentNode->GetParent();
             }
             while (!reversedAns.empty()) {
                 answer.push_back(reversedAns.back());
@@ -208,14 +216,14 @@ bool FifteenGame(vector<int> firstVecPosition, string &answer) {
         }
         for(auto move: possibleMoves){
             Node newNode = currentNode->CalculateMovedNode(move.first);
-            bitset<64> newPosition = newNode.position;
-            int newDis = nodeMap[currentState].distanceFromRoot + 1 + newNode.Heuristics();
+            bitset<64> newPosition = newNode.GetPosition();
+            int newDis = nodeMap[currentState].GetDistance() + 1 + newNode.CalcHeuristics();
             if (!wasUsed[newPosition] && (!distances.count(newPosition) || distances[newPosition] > newDis)) {
                 nodeMap[newPosition] = Node(move.second, currentNode , newPosition);
-                int newDistance = nodeMap[currentState].distanceFromRoot + 1;
-                nodeMap[newPosition].distanceFromRoot = newDistance;
-                newDistance += newNode.Heuristics();
-                heap.push(make_pair(newDistance, newPosition));
+                int newDistance = nodeMap[currentState].GetDistance() + 1;
+                nodeMap[newPosition].SetDistance(newDistance);
+                newDistance += newNode.CalcHeuristics();
+                heap.push(NumberAndBitset(newDistance, newPosition));
             }
         }
 
