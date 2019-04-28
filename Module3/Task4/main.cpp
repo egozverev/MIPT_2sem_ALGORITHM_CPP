@@ -127,17 +127,6 @@ int CalculateMaxFlow(CMatrixGraph &graph) {
 }
 
 
-void PrintGraph(CMatrixGraph &graph) {
-    std::cout << "-------\n";
-    for (int first = 0; first < graph.VerticesCount(); ++first) {
-        for (int second = 0; second< graph.VerticesCount(); ++second){
-            std::cout<<graph.GetEdgeLength(first, second)<<" ";
-        }
-        std::cout<<std::endl;
-    }
-    std::cout<<"======\n";
-}
-
 //Код текущей задачи
 
 CMatrixGraph CreateBaseTeaGraph(int peopleNumber, int teaNumber) {
