@@ -93,7 +93,9 @@ double CalcEuclideanDistance(pair<double, double> firstPoint, pair<double, doubl
 }
 
 CListGraph GenerateRandomGraph(int vertNum) {
-    std::default_random_engine generator;
+    std::random_device rd;
+    std::mt19937_64 generator(rd());
+    //std::default_random_engine generator;
     std::normal_distribution<> distribution(5, 1);
     CListGraph graph(vertNum);
     vector<pair<double, double>> points;
@@ -119,7 +121,8 @@ void CheckEfficiency() {
 
     std::cout << "Assessment of the quality of the approximation" << std::endl;
     for (int vertNum = leftBorder; vertNum <= rightBorder; ++vertNum) {
-        vector<double> deviations; //отклонениея
+        vector<double> idealDistances; //отклонениея
+        vector<double> approximateDistances;
         for (int j = 0; j < numberOfGraphs; ++j) {
             CListGraph graph = GenerateRandomGraph(vertNum);
             vector<int> permute(graph.VerticesCount());
@@ -129,21 +132,36 @@ void CheckEfficiency() {
             double idealResult = FindIdealTravellingSalesman(graph, permute, 1, graph.VerticesCount() - 1);
             vector<int> approximateWay = FindApproximateTravellingSalesman(graph);
             double approximateResult = findWayLength(graph, approximateWay);
-            deviations.push_back(approximateResult / idealResult);
-            //std::cout<< "approximate: "<< approximateResult / idealResult << std::endl;
+            idealDistances.push_back(idealResult);
+            approximateDistances.push_back(approximateResult);
 
         }
         std::cout << "Number of vertices = " << vertNum << std::endl;
-        double mean = 0;
-        double meanSquare = 0;
-        for (double elem: deviations) {
-            mean += elem;
-            meanSquare += pow(elem, 2);
+        double idealMean = 0;
+        double idealMeanSquare = 0;
+        for (double elem: idealDistances) {
+            idealMean += elem;
         }
-        mean /= numberOfGraphs;
-        meanSquare = sqrt(meanSquare / numberOfGraphs);
-        std::cout << "Mean: " << mean << std::endl;
-        std::cout << "Mean Square: " << meanSquare << std::endl;
+        idealMean /= numberOfGraphs;
+        for(double elem: idealDistances){
+            idealMeanSquare += pow( (idealMean - elem), 2);
+        }
+        idealMeanSquare = sqrt(idealMeanSquare / numberOfGraphs);
+        std::cout << "Mean(Ideal): " << idealMean << std::endl;
+        std::cout << "Mean Square (Ideal): " << idealMeanSquare << std::endl;
+
+        double approximateMean = 0;
+        double approximateMeanSquare = 0;
+        for (double elem: approximateDistances) {
+            approximateMean += elem;
+        }
+        approximateMean /= numberOfGraphs;
+        for(double elem: approximateDistances){
+            approximateMeanSquare += pow( (approximateMean - elem), 2);
+        }
+        approximateMeanSquare = sqrt(approximateMeanSquare / numberOfGraphs);
+        std::cout << "Mean(Approximate): " << approximateMean << std::endl;
+        std::cout << "Mean Square (Approximate): " << approximateMeanSquare << std::endl;
 
     }
 
