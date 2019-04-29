@@ -18,15 +18,6 @@ void FillGraph(CListGraph &graph, const unsigned int edgeNumber) {
     }
 }
 
-void PrintGraph(CListGraph &graph) {
-    for (int first = 0; first < graph.VerticesCount(); ++first) {
-        vector<pair<int, double>> next;
-        graph.GetOutcomingEdges(first, next);
-        for (auto mPair: next) {
-            std::cout << "FROM: " << first << " TO: " << mPair.first << " DIS: " << mPair.second << std::endl;
-        }
-    }
-}
 
 vector<int> WalkByPreOrder(CListGraph &graph) {
     //returns vector with visited vertices in pre-order
@@ -70,20 +61,22 @@ vector<int> FindApproximateTravellingSalesman(CListGraph &graph) {
 
 double FindIdealTravellingSalesman(CListGraph &graph, vector<int> &permute, int left, int right) {
     // O(n!) !!! Stupid solution
-    static double best_solution = std::numeric_limits<double>::max();
+    double curSolution = std::numeric_limits<int>::max();
     if (left == right) {
         permute.push_back(0); // не забываем про последний элемент
-        double curSolution = findWayLength(graph, permute);
-        best_solution = std::min(best_solution, curSolution);
+        curSolution = findWayLength(graph, permute);
         permute.pop_back();
     }
-    for (int i = left; i <= right; ++i) {
-        std::swap(permute[i], permute[left]);
-        FindIdealTravellingSalesman(graph, permute, left + 1, right);
-        std::swap(permute[i], permute[left]);
+    else{
+        for (int i = left; i <= right; ++i) {
+            std::swap(permute[i], permute[left]);
+            curSolution = std::min(curSolution, FindIdealTravellingSalesman(graph, permute, left + 1, right));
+            std::swap(permute[i], permute[left]);
 
+        }
     }
-    return best_solution;
+
+    return curSolution;
 
 
 }
