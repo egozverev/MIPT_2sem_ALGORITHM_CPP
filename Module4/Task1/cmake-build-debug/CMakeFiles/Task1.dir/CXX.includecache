@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/Programms/C_Projects/MIPT2sem/Module4/Task1/main.cpp
+algorithm
+-
+iostream
+-
+vector
+-
+cmath
+-
+
