@@ -3,25 +3,32 @@
 #include <vector>
 #include <stack>
 
-void CalcInOutTime(int vert, std::vector<std::vector<int>> &descendants, std::vector<std::pair<int, int>> &dfsTime,
-                   unsigned int &moment) {
-    dfsTime[vert].first = moment;
-    ++moment;
-    for (int elem: descendants[vert]) {
-        CalcInOutTime(elem, descendants, dfsTime, moment);
-    }
-    dfsTime[vert].second = moment;
-    ++moment;
-}
-
 std::vector<std::pair<int, int>> LaunchDFS(std::vector<int> &parents) {
     std::vector<std::pair<int, int>> dfsTime(parents.size()); // time of enter/leave
     std::vector<std::vector<int>> descendants(parents.size());
-    for (int i = 1; i < parents.size(); ++i) {
+    for (size_t i = 1; i < parents.size(); ++i) {
         descendants[parents[i]].push_back(i);
     }
     unsigned int moment = 0;
-    CalcInOutTime(0, descendants, dfsTime, moment);
+    std::stack<int> verticesStack;
+    std::vector<bool> wasVisited(parents.size());
+    verticesStack.push(0);
+    while(!verticesStack.empty()){
+        int cur = verticesStack.top();
+        if(wasVisited[cur]){
+            verticesStack.pop();
+            dfsTime[cur].second = moment;
+            ++moment;
+            continue;
+        }
+        wasVisited[cur] = true;
+        dfsTime[cur].first = moment;
+        ++moment;
+        for(int elem: descendants[cur]){
+            verticesStack.push(elem);
+        }
+
+    }
     return dfsTime;
 }
 
@@ -63,11 +70,11 @@ long long ExecuteLCA(std::vector<int> &parents, int requestNum) {
     }
     std::vector<std::vector<int>> table(parents.size(),
                                         std::vector<int>(power)); //<i, j> = 2^j - ый предок i-ой вершины
-    for (int i = 0; i < parents.size(); ++i) {
+    for (size_t i = 0; i < parents.size(); ++i) {
         table[i][0] = parents[i];
     }
-    for (int pow = 1; pow < power; ++pow) {
-        for (int i = 0; i < parents.size(); ++i) {
+    for (size_t pow = 1; pow < power; ++pow) {
+        for (size_t i = 0; i < parents.size(); ++i) {
             int prev = table[i][pow - 1];
             table[i][pow] = table[prev][pow - 1];
         }
